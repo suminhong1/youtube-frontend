@@ -10,3 +10,11 @@ export const getCategories = async () => {
   // 요게 프론트에서 함수임
   return await instance.get("category"); // 요건 변수
 };
+
+export const addVideo = async (data) => {
+  return await instance.post("video", data);
+};
+
+export const getVideos = async () => {
+  return await instance.get("video");
+};

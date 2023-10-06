@@ -276,7 +276,7 @@ const Home = () => {
       categoryFilterAPI();
     }
   }, [category]);
-
+  ``;
   const filterCategory = (e) => {
     e.preventDefault();
     const href = e.target.href.split("/");

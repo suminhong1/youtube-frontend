@@ -1,4 +1,6 @@
 import styled from "styled-components";
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBagShopping,
   faClapperboard,
@@ -8,11 +10,11 @@ import {
   faMedal,
   faMusic,
 } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFolder } from "@fortawesome/free-regular-svg-icons";
 import { useEffect, useState } from "react";
 import { getCategories, getVideos } from "../api/video";
 import { useInView } from "react-intersection-observer";
+import { Link } from "react-router-dom";
 
 const StyledAside = styled.aside`
   display: none;
@@ -21,6 +23,7 @@ const StyledAside = styled.aside`
   width: 70px;
   overflow-y: auto;
   height: 100%;
+
   &::-webkit-scrollbar {
     width: 10px;
   }
@@ -31,6 +34,7 @@ const StyledAside = styled.aside`
   &::-webkit-scrollbar-track {
     background-color: white;
   }
+
   a {
     display: block;
     text-align: center;
@@ -45,6 +49,7 @@ const StyledAside = styled.aside`
       font-size: 0.8rem;
     }
   }
+
   .aside-category,
   footer {
     display: none;
@@ -54,7 +59,6 @@ const MainContent = styled.div`
   &.main-content {
     padding-left: 70px;
   }
-
   nav {
     position: fixed;
     background-color: white;
@@ -71,7 +75,7 @@ const MainContent = styled.div`
       margin: 5px;
 
       &.active {
-        background-color: #000;
+        background-color: black;
         color: white;
       }
     }
@@ -117,6 +121,7 @@ const MainContent = styled.div`
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 2;
           }
+
           p {
             font-size: 0.9rem;
             color: #333;
@@ -127,9 +132,11 @@ const MainContent = styled.div`
     }
   }
 `;
+
 const StyledMain = styled.main`
   padding-top: 56px;
   display: flex;
+
   &.aside-change {
     aside {
       width: 70px;
@@ -143,6 +150,7 @@ const StyledMain = styled.main`
       .aside-category {
         display: none;
       }
+
       footer {
         display: none;
       }
@@ -152,77 +160,42 @@ const StyledMain = styled.main`
     }
   }
 
-  @media screen and (min-width: 600px) {
-    .header-center {
-      justify-content: center;
-    }
-
-    .header-center input {
-      display: block;
-      padding: 10px 20px;
-      border: 1px solid #ddd;
-      width: 100%;
-      max-width: 600px;
-      border-top-left-radius: 50px;
-      border-bottom-left-radius: 50px;
-    }
-
-    .header-center button {
-      border: 1px solid #ddd;
-      border-left: none;
-      border-top-right-radius: 50px;
-      border-bottom-right-radius: 50px;
-      background-color: #eee;
-      padding: 7.5px 20px;
-    }
-  }
   @media screen and (min-width: 927px) {
     aside {
       display: block;
     }
-
     section {
       justify-content: flex-start;
     }
   }
-
   @media screen and (min-width: 1350px) {
     aside {
       width: 200px;
     }
-
     aside a {
       display: flex;
     }
-
     aside a svg {
       width: 30px;
       margin-right: 20px;
     }
-
     aside a p {
       margin-top: 0;
       font-size: 1rem;
     }
-
     .main-content {
       padding-left: 200px;
     }
-
     .aside-category {
       display: block;
     }
-
     .aside-category h2 {
-      margin: 20px;
       margin: 22px 22px 0;
     }
-
     footer {
       display: block;
       margin: 22px;
     }
-
     .video-content {
       max-width: 390px;
     }
@@ -232,18 +205,23 @@ const StyledMain = styled.main`
 const Home = () => {
   const [categories, setCategories] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [ref, inView] = useInView();
   const [page, setPage] = useState(1);
   const [category, setCategory] = useState(null);
+
+  const hasScrollbar = () => {
+    return document.documentElement.scrollHeight > window.innerHeight;
+  };
+
+  const [ref, inView] = useInView({
+    skip: !hasScrollbar(), // 스크롤이 없을 경우 skip
+  });
 
   const categoryAPI = async () => {
     const result = await getCategories();
     setCategories(result.data);
   };
-  const videoAPI = async () => {
-    // database 연결해야 하는 부분 -> Spring + MyBatis(동적쿼리) / Spring Boot + JPA (JPQL, @Query)
-    // --> QueryDSL
 
+  const videoAPI = async () => {
     const result = await getVideos(page, category);
     console.log(result.data);
     setVideos([...videos, ...result.data]);
@@ -256,10 +234,13 @@ const Home = () => {
 
   useEffect(() => {
     categoryAPI();
-    // videoAPI();
-    //     fetch("http://localhost:8080/api/category").then((response)=>
-    //     response.json()).then((json)=>{console.log(json);setCategories(json);
-    //   })
+    videoAPI();
+    //fetch("http://localhost:8080/api/category")
+    //.then((response) => response.json())
+    //.then((json) => {
+    // console.log(json);
+    //setCategories(json);
+    //});
   }, []);
 
   useEffect(() => {
@@ -273,16 +254,17 @@ const Home = () => {
   useEffect(() => {
     if (category != null) {
       console.log(category);
-      categoryFilterAPI();
+      videoAPI();
     }
   }, [category]);
-  ``;
+
   const filterCategory = (e) => {
     e.preventDefault();
     const href = e.target.href.split("/");
     console.log(href[href.length - 1]);
     setCategory(parseInt(href[href.length - 1]));
     setPage(1);
+    setVideos([]);
   };
 
   return (
@@ -337,8 +319,12 @@ const Home = () => {
           ))}
         </nav>
         <section>
-          {videos.map((video) => (
-            <a href="#" className="video-content" key={video.videoCode}>
+          {videos.map((video, index) => (
+            <Link
+              to={"/watch/" + video.videoCode}
+              className="video-content"
+              key={video.videoCode}
+            >
               <video
                 width="100%"
                 poster={"/upload/" + video.videoPhoto}
@@ -351,17 +337,20 @@ const Home = () => {
               <div className="video-summary">
                 <img
                   src={"/upload/" + video.channel.channelPhoto}
-                  alt="채널 이미지"
+                  alt="채널이미지"
                 />
                 <div className="video-desc">
                   <h3>{video.videoTitle}</h3>
                   <p>{video.channel.channelName}</p>
                   <p>
-                    조회수<span>{video.videoViews}</span>회 <span>1일</span> 전
+                    조회수
+                    <span>{video.videoViews}</span>
+                    회ㆍ
+                    <span>1일</span>전
                   </p>
                 </div>
               </div>
-            </a>
+            </Link>
           ))}
           <div ref={ref}></div>
         </section>

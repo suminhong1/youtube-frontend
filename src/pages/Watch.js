@@ -38,6 +38,7 @@ const Watch = () => {
 
   useEffect(() => {
     dispatch(viewComments(id));
+    console.log(id);
   }, [dispatch]);
 
   return (
